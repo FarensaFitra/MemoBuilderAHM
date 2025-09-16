@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MEMO BUILDER – Hasil Memo</title>
+
+    <!-- CONFIG API -->
+    <script>
+      window.MEMO_API_ENABLED = true;
+      window.MEMO_API_BASE = "https://script.google.com/macros/s/AKfycbz27OvM9n1vGUcePh7JX6cd62X1JeeD7pa_vcJSqwK7FgsxMvq0j3QJesc2jBlIi1b3/exec";
+      window.MEMO_API_TIMEOUT_MS = 7000;
+    </script>
+    <script src="memo-api.js?v=20250907-1"></script>
+
+    <!-- libs -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+
+    <script>
+      // Tandai lingkungan agar CSS bisa beda antara Electron vs Web
+      (function () {
+        const isElectron = !!window.electronAPI || (navigator.userAgent || "").toLowerCase().includes("electron");
+        document.documentElement.classList.add(isElectron ? "is-electron" : "is-web");
+      })();
+    </script>
+
+    <style>
+      /* ====== NAVBAR ====== */
+      .navbar {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+      .navbar-brand:hover {
+        color: #ffd1d1 !important;
+        transition: color 0.3s ease;
+      }
+      .navbar-toggler {
+        border: none;
+        transition: transform 0.2s ease;
+      }
+      .navbar-toggler:hover {
+        transform: scale(1.08);
+      }
+      .navbar-brand img {
+        height: 30px;
+        object-fit: contain;
+      }
+
+      /* Offcanvas menu */
+      .offcanvas-body .nav-link {
+        color: #000 !important;
+        font-weight: 500;
+        padding: 8px 12px;
+        border-radius: 8px;
+      }
+      .offcanvas-body .nav-link:hover {
+        background: rgba(217, 50, 50, 0.1);
+        color: #d93232 !important;
+      }
+      .offcanvas-body .nav-link.active {
+        background: rgba(217, 50, 50, 0.12);
+        color: #d93232 !important;
+      }
+      .offcanvas-header {
+        background: #d93232;
+      }
+      .offcanvas-header .btn-close {
+        filter: invert(1);
+      }
+
+      /* beri ruang di bawah navbar fixed */
+      body {
+        padding-top: 80px;
+      }
+
+      /* ====== Left column (judul + tombol) ====== */
+      .side-actions {
+        position: sticky;
+        top: 96px;
+        min-width: 240px;
+      }
+      .page-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        white-space: nowrap;
+        font-weight: 800;
+        font-size: 30px;
+        color: #000;
+        margin-bottom: 14px;
+      }
+      .page-title i {
+        font-size: 36px;
+        color: #000000;
+      }
+
+      .btn-wide {
+        width: 100%;
+        max-width: 360px;
+        border-radius: 14px;
+        padding: 14px 18px;
+        font-size: 20px;
+      }
+      .download-btn {
+        background: #bf0000;
+        color: #fff;
+        border: none;
+      }
+      .download-btn:hover {
+        background: #a02525;
+      }
+      .back-btn {
+        background: #6c757d;
+        color: #fff;
+        border: none;
+      }
+      .back-btn:hover {
+        background: #838e96;
+      }
+      .log-btn {
+        background: #000;
+        color: #fff;
+        border: none;
+      }
+      .log-btn:hover {
+        background: #2b2b2b;
+      }
+
+      /* ====== Kertas memo ====== */
+      body.page {
+        font-family: Calibri, sans-serif;
+        background: #f2f2f2;
+        color: #000;
+      }
+      .memo-container {
+        background: #fff;
+        width: 210mm;
+        min-height: 297mm;
+        padding: 70px 120px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        box-sizing: border-box;
+      }
+      .logo {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo img {
+        height: 45px;
+        display: block;
+      }
+      .memo-title {
+        font-size: 50px;
+        font-weight: 800;
+        color: #333;
+        margin: 0;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        position: relative;
+        top: -2px;
+      }
+      .memo-date {
+        text-align: right;
+        font-size: 15px;
+        line-height: 0;
+        margin: 0;
+        margin-top: 0;
+        padding-top: 0;
+      }
+
+      .header-info {
+        margin-top: 55px;
+        margin-bottom: 20px;
+        font-size: 15px;
+      }
+      .header-info td {
+        padding: 4px 8px;
+        vertical-align: top;
+      }
+      .red {
+        color: #000;
+        font-weight: 400;
+      }
+
+      .memo-paragraph {
+        text-indent: 30px;
+        margin-bottom: 16px;
+        text-align: justify;
+        line-height: 1.5;
+      }
+      .text {
+        margin-top: 45px;
+        line-height: 1.5;
+        text-align: justify;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        font-size: 15px;
+      }
+
+      .signature {
+        margin-top: 60px;
+        display: flex;
+        justify-content: space-between;
+        text-align: center;
+        gap: 12px;
+        font-size: 15px;
+      }
+      .signature div {
+        width: 100%;
+      }
+      .signature .red {
+        margin-top: 50px;
+        display: inline-block;
+      }
+
+      /* Responsif */
+      @media (max-width: 992px) {
+        .container-two-col {
+          flex-direction: column;
+        }
+        .side-actions {
+          position: static;
+          margin-bottom: 20px;
+        }
+        .page-title {
+          font-size: 34px;
+        }
+        .memo-container {
+          width: 100%;
+          padding: 40px 24px;
+        }
+      }
+
+      /* Cetak */
+      @media print {
+        body {
+          background: #fff;
+          padding-top: 0;
+        }
+        nav,
+        .side-actions {
+          display: none !important;
+        }
+        .memo-container {
+          box-shadow: none;
+          border-radius: 0;
+          width: 210mm;
+          min-height: 297mm;
+          padding: 20mm;
+          margin-left: auto;
+          margin-right: auto;
+        }
+      }
+
+      /* ——— Rapetin jarak logo ↔ tanggal ——— */
+      .logo {
+        margin-bottom: 6px !important;
+      }
+      .logo img {
+        margin-top: 0 !important;
+      }
+      .memo-title {
+        margin: 0;
+        line-height: 1;
+      }
+      .memo-date {
+        margin-top: 2px !important;
+        line-height: 1.15;
+      }
+
+      /* Khusus saat ekspor PDF */
+      .pdf-mode .memo-container {
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      /* Pastikan ukuran halaman A4 benar2 rapat saat ekspor PDF */
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      /* Mode PDF: rapikan ukuran & padding agar tidak melebihi A4 */
+      .pdf-mode #memo {
+        width: 210mm;
+        min-height: auto; /* tinggi mengikuti isi */
+        padding: 20mm; /* padding khusus A4 */
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      /* Trik -1px untuk mencegah halaman kosong */
+      .pdf-fix {
+        margin-bottom: -1px;
+      }
+
+      /* Hindari pecah blok */
+      #memo,
+      #memo * {
+        page-break-inside: avoid;
+      }
+
+      :root {
+        /* ubah sesuai selera: 1.00 = 100%, 1.25 = 125% */
+        --preview-scale: 1.25;
+      }
+
+      /* viewport untuk menggulung & memusatkan kertas saat di web */
+      .is-web .memo-viewport {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        height: calc(100vh - 120px); /* ruang untuk navbar, silakan sesuaikan */
+        overflow: auto;
+        padding: 16px;
+      }
+
+      /* perbesar kertas A4 hanya di web */
+      .is-web .memo-viewport .memo-container {
+        transform: scale(var(--preview-scale));
+        transform-origin: top center;
+      }
+
+      /* saat generate PDF (class pdf-mode sudah ada di JS), hilangkan scale */
+      .pdf-mode .memo-viewport .memo-container {
+        transform: none;
+      }
+
+      /* saat print di browser pun kembali ke ukuran asli */
+      @media print {
+        .memo-viewport {
+          height: auto;
+          padding: 0;
+        }
+        .memo-viewport .memo-container {
+          transform: none;
+        }
+      }
+
+      /* Hanya saat dibuka di browser (bukan Electron) */
+      .is-web html,
+      .is-web body {
+        max-width: 100%;
+        overflow-x: hidden; /* matikan scroll kiri-kanan */
+      }
+
+      .is-web .container-two-col {
+        overflow-x: hidden; /* jaga kontainer 2 kolom tak meluber */
+      }
+
+      .is-web .memo-container {
+        margin-left: auto; /* tetap tengah */
+        margin-right: auto;
+      }
+
+      /* Di perangkat sentuh/trackpad, batasi gesture ke vertikal saja */
+      .is-web body {
+        touch-action: pan-y;
+        overscroll-behavior-x: none;
+      }
+
+      .is-web .memo-viewport {
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* Kunci scroll horizontal di level halaman */
+      .is-web html,
+      .is-web body {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      /* Antisipasi kontainer 2 kolom meluber */
+      .is-web .container-two-col {
+        overflow-x: hidden;
+      }
+
+      /* Viewport memo: hanya boleh scroll vertikal */
+      .is-web .memo-viewport {
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* Kolom kanan sebagai flex-item: boleh menyusut, tidak mendorong lebar */
+      .is-web .container-two-col > .memo-viewport {
+        flex: 1 1 auto;
+        min-width: 0; /* kunci penting agar konten tidak mendorong lebar */
+      }
+
+      /* Naikkan kolom kiri (judul + 3 tombol) */
+      @media (min-width: 992px) {
+        .side-actions {
+          top: 8px; /* semula 96px; bisa 0–16px sesuai selera */
+        }
+        .page-title {
+          margin-bottom: 10px; /* rapetin jarak ke tombol */
+        }
+      }
+
+      /* ------------ Title dot (titik merah) ------------ */
+      .title-row {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin: 0 0 12px 0;
+        overflow: visible; /* biar box-shadow tidak terpotong */
+      }
+
+      .title-left {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        overflow: visible; /* biarkan halo keluar area */
+        padding-left: 6px; /* beri sedikit ruang kiri jika perlu */
+      }
+
+      .title-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #d93232; /* warna merah */
+        box-shadow: 0 0 0 6px #fde8e8; /* lingkaran luar halus */
+        flex-shrink: 0;
+        position: relative;
+        z-index: 2;
+      }
+    </style>
+  </head>
+  <body class="page">
+    <nav class="navbar navbar-dark bg-danger fixed-top">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center">
+          <button class="navbar-toggler me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand fw-bold mb-0 h1 d-flex align-items-center" href="index.html">
+            <img src="img/memo1.png" alt="Logo Memo" style="width: 60px; height: 60px; object-fit: contain" />
+            MEMO Builder
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ===== OFFCANVAS ===== -->
+    <div class="offcanvas offcanvas-start text-bg-light" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
+      <div class="offcanvas-header text-white">
+        <h5 class="offcanvas-title fw-bold d-flex align-items-center gap-2" id="offcanvasMenuLabel">
+          <img src="img/memo1.png" alt="Logo" style="width: 60px; height: 60px; object-fit: contain" />
+          MEMO Builder
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <ul class="navbar-nav">
+          <li class="nav-item mb-3">
+            <a class="nav-link d-flex align-items-center gap-2" href="nav.html">
+              <img src="img/beranda.png" alt="Beranda" width="40" height="40" />
+              <span>Beranda</span>
+            </a>
+          </li>
+          <li class="nav-item mb-3">
+            <a class="nav-link d-flex align-items-center gap-2" href="index.html">
+              <img src="img/form.png" alt="Form" width="40" height="40" />
+              <span>Form Pengisian Memo</span>
+            </a>
+          </li>
+          <li class="nav-item mb-3">
+            <a class="nav-link d-flex align-items-center gap-2 active" href="hasil.html">
+              <img src="img/hasil.png" alt="Memo Terakhir" width="40" height="40" />
+              <span>Memo Terakhir Dibuat</span>
+            </a>
+          </li>
+          <li class="nav-item mb-3">
+            <a class="nav-link d-flex align-items-center gap-2" href="log.html">
+              <img src="img/log.png" alt="Log" width="40" height="40" />
+              <span>Log Pembuatan Memo</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== KONTEN: Dua kolom ===== -->
+    <div class="container mt-4 pt-0 d-flex align-items-start gap-4 container-two-col">
+      <!-- Kolom kiri: judul + tombol (sticky) -->
+      <div class="side-actions d-flex flex-column align-items-center">
+        <!-- MODIF: title dengan titik merah -->
+        <div class="title-row" aria-hidden="true">
+          <div class="title-left">
+            <span class="title-dot"></span>
+            <h1 class="page-title m-0">Tampilan Hasil Memo <i class="bi bi-arrow-right-circle"></i></h1>
+          </div>
+        </div>
+
+        <button class="btn-wide download-btn mb-3" id="btnDownload" onclick="downloadPDF()">Download Memo</button>
+        <button class="btn-wide back-btn mb-3" onclick="window.location.href='index.html'">Kembali Ke Form Pengisian</button>
+        <button class="btn-wide log-btn" onclick="window.location.href='log.html'">Lihat Log Pembuatan Memo</button>
+      </div>
+
+      <!-- Kolom kanan: kertas memo -->
+      <div class="memo-viewport">
+        <div class="memo-container" id="memo">
+          <div class="logo">
+            <img src="img/ahm.png" alt="Logo AHM" />
+            <div class="memo-title">MEMO</div>
+          </div>
+
+          <div class="memo-date"><span id="tempat" class="red"></span>, <span id="tanggal" class="red"></span></div>
+
+          <table class="header-info">
+            <tr>
+              <td>No</td>
+              <td>: <span id="nomor" class="red"></span></td>
+            </tr>
+            <tr>
+              <td>Kepada</td>
+              <td>: <span id="kepada" class="red"></span></td>
+            </tr>
+            <tr>
+              <td>Dari</td>
+              <td>: <span id="dari" class="red"></span></td>
+            </tr>
+            <tr>
+              <td>Perihal</td>
+              <td>: <span id="hal" class="red"></span></td>
+            </tr>
+          </table>
+
+          <div class="text">
+            Dengan hormat,<br /><br />
+            <div id="isi" class="red"></div>
+            <div id="gambarContainer" style="margin-top: 20px; text-align: center"></div>
+            <br />
+            Demikian permohonan ini kami buat. Atas perhatian dan kerja samanya, kami ucapkan terima kasih.
+          </div>
+
+          <div class="signature">
+            <div>
+              Diajukan<br />
+              <div class="red" id="diajukanNama"></div>
+              <div id="diajukanJabatan"></div>
+            </div>
+            <div>
+              Diketahui<br />
+              <div class="red" id="diketahuiNama"></div>
+              <div id="diketahuiJabatan"></div>
+            </div>
+            <div>
+              Diterima<br />
+              <div class="red" id="diterimaNama"></div>
+              <div id="diterimaJabatan"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Ganti fungsi downloadPDF yang ada dengan versi ini:
+      let isDownloading = false;
+
+      async function downloadPDF() {
+        const data = JSON.parse(localStorage.getItem("memoData") || "null");
+        if (!data) {
+          alert("Tidak ada data memo untuk diproses.");
+          return;
+        }
+        if (isDownloading) return;
+        isDownloading = true;
+
+        const btn = document.getElementById("btnDownload");
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Memproses...";
+        }
+
+        try {
+          // 1) FINALIZE di server jika nomor berformat "NNN/..."
+          const nomor = String(data.nomor || "");
+          const m = nomor.match(/^(\d{3})\//);
+          if (m) {
+            const tahun = data.tanggal ? String(new Date(data.tanggal).getFullYear()) : String(new Date().getFullYear());
+            try {
+              // finalizeNumberOnServer diekspos oleh memo-api.js
+              const fin = await finalizeNumberOnServer({ year: tahun, nomor3Digit: m[1], nomorPenuh: nomor, pemakai: data.diajukanNama || "unknown" });
+              if (!(fin && fin.ok)) {
+                // Jika server merespon error, tanya user apakah tetap lanjut
+                const cont = confirm("Gagal finalize nomor di server. Lanjutkan pembuatan PDF tanpa finalize? (Risiko duplikat nomor)");
+                if (!cont) {
+                  isDownloading = false;
+                  if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "Download Memo";
+                  }
+                  return;
+                }
+              }
+            } catch (err) {
+              // network / timeout saat finalize -> minta konfirmasi
+              console.warn("finalizeNumberOnServer error", err);
+              const cont = confirm("Tidak dapat menghubungi server untuk finalisasi. Lanjutkan pembuatan PDF tanpa finalize? (Risiko duplikat nomor)");
+              if (!cont) {
+                isDownloading = false;
+                if (btn) {
+                  btn.disabled = false;
+                  btn.textContent = "Download Memo";
+                }
+                return;
+              }
+            }
+          }
+
+          // 2) CATAT LOG TERPUSAT (best-effort)
+          /* ==== Queue & retry untuk log yang gagal dikirim ==== */
+          function enqueuePendingLog(entry) {
+            try {
+              const raw = localStorage.getItem("pendingLogAdds") || "[]";
+              const arr = JSON.parse(raw);
+              arr.push({ at: new Date().toISOString(), data: entry });
+              localStorage.setItem("pendingLogAdds", JSON.stringify(arr));
+              console.log("[LOG QUEUE] enqueue", entry);
+            } catch (e) {
+              console.warn("[LOG QUEUE] gagal enqueue", e);
+            }
+          }
+
+          async function drainPendingLogAdds() {
+            try {
+              const raw = localStorage.getItem("pendingLogAdds") || "[]";
+              let arr = JSON.parse(raw);
+              if (!Array.isArray(arr) || arr.length === 0) return;
+              console.log(`[LOG QUEUE] mencoba mengirim ulang ${arr.length} entri...`);
+
+              const remaining = [];
+              for (const it of arr) {
+                try {
+                  // coba kirim ulang
+                  if (typeof addLogOnServer === "function") {
+                    const payload = { ...it.data };
+                    const res = await addLogOnServer(payload);
+                    if (!(res && res.ok)) {
+                      console.warn("[LOG QUEUE] server respon error, keep in queue:", res);
+                      remaining.push(it);
+                    } else {
+                      console.log("[LOG QUEUE] terkirim:", it.data);
+                    }
+                  } else {
+                    // tidak ada fungsi addLogOnServer → stop trying
+                    remaining.push(it);
+                  }
+                } catch (err) {
+                  console.warn("[LOG QUEUE] error saat kirim ulang:", err);
+                  remaining.push(it);
+                }
+              }
+              // tulis kembali sisa yang belum terkirim
+              localStorage.setItem("pendingLogAdds", JSON.stringify(remaining));
+            } catch (e) {
+              console.warn("[LOG QUEUE] drain error", e);
+            }
+          }
+
+          // jalankan retry saat halaman siap & saat fokus
+          window.addEventListener("DOMContentLoaded", () => {
+            // jalankan sedikit tunda supaya tidak mengganggu proses utama
+            setTimeout(drainPendingLogAdds, 1200);
+          });
+          window.addEventListener("focus", () => {
+            setTimeout(drainPendingLogAdds, 500);
+          });
+
+          /* ==== CATAT LOG TERPUSAT (best-effort) - penggantian kode lama ==== */
+          try {
+            const logPayload = {
+              nomor: data.nomor,
+              perihal: data.hal,
+              // gabungkan nama + jabatan jika ada
+              dibuatOleh: data.diajukanJabatan ? `${data.diajukanNama} (${data.diajukanJabatan})` : data.diajukanNama,
+              tanggal: data.tanggal,
+            };
+
+            // Simpan ke memoLogs lokal (backup/display)
+            try {
+              const prev = JSON.parse(localStorage.getItem("memoLogs") || "[]");
+              const idx = prev.findIndex((l) => (l.nomor || "").trim() === (logPayload.nomor || "").trim());
+              const entriBaru = {
+                nomor: logPayload.nomor,
+                hal: logPayload.perihal,
+                dari: logPayload.dibuatOleh,
+                tanggal: logPayload.tanggal,
+              };
+              if (idx >= 0) prev[idx] = entriBaru;
+              else prev.push(entriBaru);
+              localStorage.setItem("memoLogs", JSON.stringify(prev));
+            } catch (e) {
+              console.warn("gagal update memoLogs lokal:", e);
+            }
+
+            // Kirim ke server (best-effort)
+            if (typeof addLogOnServer === "function") {
+              try {
+                const r = await addLogOnServer(logPayload);
+                console.log("addLogOnServer result:", r);
+                if (!(r && r.ok)) {
+                  // Simpan ke antrean untuk retrial
+                  enqueuePendingLog(logPayload);
+                }
+              } catch (err) {
+                console.warn("addLogOnServer gagal:", err);
+                enqueuePendingLog(logPayload);
+              }
+            } else {
+              // fungsi tidak tersedia → simpan ke antrean
+              console.warn("Fungsi addLogOnServer tidak ada. Simpan ke queue.");
+              enqueuePendingLog(logPayload);
+            }
+          } catch (err) {
+            console.warn("Penanganan log gagal:", err);
+          }
+
+          // 3) lanjutkan pembuatan PDF (kode html2pdf yang sudah ada)
+          const element = document.getElementById("memo");
+          document.body.classList.add("pdf-mode");
+          const opt = {
+            margin: 0,
+            filename: (data.nomor || "Memo").replace(/\//g, "-") + ".pdf",
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          };
+          if (window.electronAPI && window.electronAPI.savePDF) {
+            const pdfBase64 = await html2pdf().set(opt).from(element).outputPdf("datauristring");
+            await window.electronAPI.savePDF({ base64Data: pdfBase64, filename: opt.filename });
+            alert("Memo berhasil disimpan (Electron).");
+          } else {
+            await html2pdf().set(opt).from(element).save();
+          }
+
+          // Opsional: tandai lokal nomor sudah dipakai
+          try {
+            const used = JSON.parse(localStorage.getItem("usedNomorMemo") || "[]");
+            const prefix = (data.nomor || "").match(/^(\d{3}\/)/);
+            if (prefix) {
+              if (!used.includes(prefix[1])) {
+                used.push(prefix[1]);
+                localStorage.setItem("usedNomorMemo", JSON.stringify(used));
+              }
+            }
+          } catch {}
+        } catch (err) {
+          console.error("downloadPDF error:", (err && err.message) || err);
+          alert("Terjadi kesalahan saat proses pembuatan memo. Cek console untuk detail.");
+        } finally {
+          isDownloading = false;
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Download Memo";
+          }
+          document.body.classList.remove("pdf-mode");
+        }
+      }
+    </script>
+
+    <script>
+      async function loadMemoToPage() {
+        try {
+          let data = null;
+          try {
+            data = JSON.parse(localStorage.getItem("memoData") || "null");
+          } catch (_) {
+            data = null;
+          }
+          if (!data) {
+            document.body.insertAdjacentHTML("afterbegin", '<div style="color:#b00;padding:12px">Data memo tidak ditemukan di localStorage.</div>');
+            return;
+          }
+          const el = (id) => document.getElementById(id);
+          el("tempat").textContent = data.tempat || "";
+          try {
+            const date = new Date(data.tanggal);
+            const bulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            el("tanggal").textContent = !isNaN(date.getTime()) ? `${date.getDate()} ${bulan[date.getMonth()]} ${date.getFullYear()}` : data.tanggal || "";
+          } catch {
+            el("tanggal").textContent = data.tanggal || "";
+          }
+          el("nomor").textContent = data.nomor || "";
+          el("kepada").textContent = data.kepada || "";
+          el("dari").textContent = data.dari || "";
+          el("hal").textContent = data.hal || "";
+          const isiEl = el("isi");
+          isiEl.innerHTML = "";
+          String(data.isi || "")
+            .trim()
+            .split(/\n+/)
+            .forEach((p) => {
+              if (!p) return;
+              const para = document.createElement("p");
+              para.className = "memo-paragraph";
+              para.textContent = p;
+              isiEl.appendChild(para);
+            });
+          el("diajukanNama").textContent = data.diajukanNama || "";
+          el("diajukanJabatan").textContent = data.diajukanJabatan ? `(${data.diajukanJabatan})` : "";
+          el("diketahuiNama").textContent = data.diketahuiNama || "";
+          el("diketahuiJabatan").textContent = data.diketahuiJabatan ? `(${data.diketahuiJabatan})` : "";
+          el("diterimaNama").textContent = data.diterimaNama || "";
+          el("diterimaJabatan").textContent = data.diterimaJabatan ? `(${data.diterimaJabatan})` : "";
+          if (data.gambar) {
+            const c = el("gambarContainer");
+            c.innerHTML = "";
+            const img = document.createElement("img");
+            img.src = data.gambar;
+            img.alt = "Gambar tambahan";
+            img.style.maxWidth = "90%";
+            c.appendChild(img);
+          }
+        } catch (err) {
+          console.error("loadMemoToPage error", err);
+        }
+      }
+      window.addEventListener("DOMContentLoaded", loadMemoToPage);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,259 @@
+.text {
+  margin-top: 20px;
+  line-height: 1.6;
+  text-align: justify;
+  word-wrap: break-word; /* MEMAKSA kata panjang dipotong */
+  overflow-wrap: break-word; /* Untuk browser modern */
+  white-space: normal; /* Pastikan teks membungkus ke bawah */
+}
+
+.memo-container {
+  width: 100%;
+  max-width: 730px; /* ≤ 794px aman untuk A4 */
+  margin: auto;
+  background: white;
+  padding: 40px 40px; /* boleh 24–32px kalau konten tinggi */
+  box-sizing: border-box;
+}
+
+.text,
+td,
+.memo-header {
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1;
+  padding: 0;
+}
+
+.memo-title {
+  font-size: 48px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.memo-date {
+  font-size: 20px;
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+  line-height: 1.1;
+}
+
+.signature div {
+  width: 120px; /* Buat fixed width agar konsisten */
+  text-align: center; /* Pusatkan teks dalam blok */
+  margin-left: 20px; /* Geser ke kanan sedikit */
+}
+
+.signature div {
+  width: 120px; /* Buat fixed width agar konsisten */
+  text-align: center; /* Pusatkan teks dalam blok */
+  margin-left: 20px; /* Geser ke kanan sedikit */
+}
+
+.signature #diajukanJabatan,
+.signature #diketahuiJabatan,
+.signature #diterimaJabatan {
+  display: block;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.download-btn {
+  margin-top: 20px;
+  background: #fe0303ff;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.download-btn:hover {
+  background: #b30000ff;
+}
+
+.back-btn {
+  margin-top: 10px;
+  background: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  background: #5a6268;
+}
+
+.jumbotron {
+  padding-top: 5rem;
+  background-color: #e2edff;
+}
+
+:root {
+  --red: #d93232; /* merah utama */
+  --red-600: #c02a2a;
+  --red-100: #fde8e8;
+  --ink: #0f0f10; /* hitam teks */
+  --muted: #6b7280;
+  --paper: #ffffff;
+  --bg: #f6f7f9; /* latar lembut */
+}
+
+/* Latar halus + grid tipis biar nggak monoton */
+body {
+  background: linear-gradient(180deg, #fff 0%, #fafafa 30%, var(--bg) 100%), radial-gradient(24px 24px at 24px 24px, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+  background-size: 100% 100%, 48px 48px;
+  color: var(--ink);
+}
+
+/* Navbar sedikit lebih tebal + bayangan lembut */
+.navbar {
+  background: linear-gradient(180deg, var(--red) 0%, var(--red-600) 100%);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Judul seksi + garis aksen */
+.section-title {
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+  margin: 28px 0 20px;
+}
+.section-title .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 0 6px var(--red-100);
+}
+
+/* Kartu preview “kertas” memo */
+.memo-frame {
+  background: var(--paper);
+  border-radius: 18px;
+  box-shadow: 0 30px 50px rgba(0, 0, 0, 0.1), 0 6px 14px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Aksen pita kecil di atas kertas */
+.memo-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--red) 0 40%, #000 40% 44%, #fff 44% 100%);
+}
+
+/* “Paper area” di dalam frame */
+.memo-paper {
+  width: 210mm; /* tetap ukuran A4 */
+  min-height: 297mm;
+  padding: 32mm 24mm;
+  margin: auto;
+  background: #fff;
+}
+
+/* Badge status kecil (opsional) */
+.badge-soft {
+  background: var(--red-100);
+  color: var(--red-600);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* CTA lebih hidup */
+.btn-cta {
+  border-radius: 12px;
+  padding: 0.9rem 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
+  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.08);
+}
+.btn-cta:active {
+  transform: translateY(1px);
+}
+
+.btn-red {
+  background: #bf0000;
+  color: #fff;
+}
+.btn-red:hover {
+  background: #a02525;
+}
+
+.btn-slate {
+  background: #6b7580;
+  color: #fff;
+}
+.btn-slate:hover {
+  background: #838e96;
+}
+
+.btn-black {
+  background: #000;
+  color: #fff;
+}
+.btn-black:hover {
+  background: #2b2b2b;
+}
+
+/* Baris judul + panah di kanan (selalu 1 baris) */
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 18px auto 8px;
+  max-width: 1200px;
+}
+.title-row h1 {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(26px, 3.6vw, 44px);
+}
+.title-row .title-action {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--red);
+  display: grid;
+  place-items: center;
+  color: var(--red);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.12s;
+}
+.title-row .title-action:hover {
+  background: var(--red);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Container ramping */
+.page-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Responsif kecil */
+@media (max-width: 992px) {
+  .memo-paper {
+    width: min(100%, 210mm);
+    padding: 18mm 12mm;
+  }
+}

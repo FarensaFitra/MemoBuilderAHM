@@ -1,0 +1,9 @@
+# Jangan commit folder build & dependency
+node_modules/
+dist/
+
+# Jangan commit file biner besar
+*.exe
+*.dll
+*.pak
+*.bin

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MEMO BUILDER – Form</title>
+
+    <!-- CONFIG API -->
+    <script>
+      window.MEMO_API_ENABLED = true;
+      window.MEMO_API_BASE = "https://script.google.com/macros/s/AKfycbz27OvM9n1vGUcePh7JX6cd62X1JeeD7pa_vcJSqwK7FgsxMvq0j3QJesc2jBlIi1b3/exec"; /* <-- ganti */
+      window.MEMO_API_TIMEOUT_MS = 7000;
+    </script>
+
+    <script src="memo-api.js?v=20250907-1"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+
+    <script>
+      // Tandai lingkungan agar CSS bisa beda antara Electron vs Web
+      (function () {
+        const isElectron = !!window.electronAPI || (navigator.userAgent || "").toLowerCase().includes("electron");
+        document.documentElement.classList.add(isElectron ? "is-electron" : "is-web");
+      })();
+    </script>
+
+    <style>
+      :root {
+        --red: #d93232;
+        --red-600: #c02a2a;
+        --red-100: #fde8e8;
+        --ink: #0f0f10;
+        --paper: #ffffff;
+        --bg: #f6f7f9;
+      }
+
+      body {
+        background: linear-gradient(180deg, #fff 0%, #fafafa 30%, var(--bg) 100%), radial-gradient(24px 24px at 24px 24px, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+        background-size: 100% 100%, 48px 48px;
+        color: var(--ink);
+      }
+
+      /* Navbar */
+      .navbar {
+        background: linear-gradient(180deg, var(--red) 0%, var(--red-600) 100%);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      }
+      .navbar-brand:hover {
+        color: #ffd1d1 !important;
+        transition: color 0.3s;
+      }
+      .navbar-toggler {
+        border: none;
+        transition: transform 0.2s;
+      }
+      .navbar-toggler:hover {
+        transform: scale(1.1);
+      }
+      .navbar-brand img {
+        height: 30px;
+        object-fit: contain;
+      }
+
+      /* Offcanvas */
+      .offcanvas-header {
+        background: var(--red);
+      }
+      .offcanvas-header .offcanvas-title {
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .offcanvas-header .btn-close {
+        filter: invert(1);
+      }
+      .offcanvas-body .nav-link {
+        color: #000 !important;
+        font-weight: 500;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background-color 0.25s, color 0.25s;
+      }
+      .offcanvas-body .nav-link:hover {
+        background: rgba(217, 50, 50, 0.1);
+        color: var(--red) !important;
+      }
+      .offcanvas-body .nav-link img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        flex-shrink: 0;
+      }
+
+      /* Page */
+      .page-wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 32px auto 18px;
+      }
+      .title-left {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+      .title-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--red);
+        box-shadow: 0 0 0 6px var(--red-100);
+      }
+      .page-title {
+        margin: 0;
+        font-weight: 800;
+        font-size: clamp(26px, 3.6vw, 44px);
+        font-family: Calibri, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      }
+
+      /* Card */
+      .form-shell {
+        background: var(--paper);
+        border-radius: 18px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        box-shadow: 0 30px 50px rgba(0, 0, 0, 0.1), 0 6px 14px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+      .form-head {
+        padding: 18px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: linear-gradient(90deg, var(--red) 0 60%, #000 60% 62%, #fff 62% 100%);
+        color: #fff;
+      }
+      .form-head h2 {
+        margin: 0;
+        font-size: clamp(18px, 2.2vw, 22px);
+        font-weight: 700;
+      }
+      .form-body {
+        padding: 24px;
+      }
+      .form-section-title {
+        font-size: 14px;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        color: #555;
+        text-transform: uppercase;
+        margin: 6px 0 14px;
+      }
+
+      /* Inputs */
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--red);
+        box-shadow: 0 0 0 0.2rem rgba(217, 50, 50, 0.15);
+      }
+      .input-group-text {
+        background: #fff;
+        border-right: 0;
+      }
+      .input-group .form-select {
+        border-left: 0;
+      }
+
+      /* Buttons */
+      .btn-danger {
+        background: var(--red);
+        border-color: var(--red);
+      }
+      .btn-danger:hover {
+        background: var(--red-600);
+        border-color: var(--red-600);
+      }
+      .btn-dark:hover {
+        background: #2b2b2b;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: #6c757d;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center">
+          <button class="navbar-toggler me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand fw-bold mb-0 h1 d-flex align-items-center" href="#">
+            <img src="img/memo1.png" alt="Logo Memo" style="width: 60px; height: 60px; object-fit: contain" />
+            MEMO Builder
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- OFFCANVAS MENU -->
+    <div class="offcanvas offcanvas-start text-bg-light" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
+      <div class="offcanvas-header text-white">
+        <h5 class="offcanvas-title fw-bold d-flex align-items-center gap-2" id="offcanvasMenuLabel">
+          <img src="img/memo1.png" alt="Logo" style="width: 60px; height: 60px; object-fit: contain" />
+          MEMO Builder
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <ul class="navbar-nav">
+          <li class="nav-item mb-3">
+            <a class="nav-link d-flex align-items-center gap-2" href="nav.html"><img src="img/beranda.png" alt="Beranda" /><span>Beranda</span></a>
+          </li>
+          <li class="nav-item mb-3">
+            <a class="nav-link d-flex align-items-center gap-2" href="index.html"><img src="img/form.png" alt="Form" /><span>Form Pengisian Memo</span></a>
+          </li>
+          <li class="nav-item mb-3">
+            <a class="nav-link d-flex align-items-center gap-2" href="hasil.html"><img src="img/hasil.png" alt="Memo Terakhir" /><span>Memo Terakhir Dibuat</span></a>
+          </li>
+          <li class="nav-item mb-3">
+            <a class="nav-link d-flex align-items-center gap-2" href="log.html"><img src="img/log.png" alt="Log" /><span>Log Pembuatan Memo</span></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <main class="page-wrap">
+      <div class="title-row">
+        <div class="title-left">
+          <span class="title-dot"></span>
+          <h1 class="page-title">Form Pengisian Memo</h1>
+        </div>
+      </div>
+
+      <div class="form-shell mb-5">
+        <div class="form-head"><h2>Data Memo</h2></div>
+
+        <div class="form-body">
+          <form id="memoForm">
+            <div class="row g-4">
+              <!-- KIRI -->
+              <div class="col-md-6">
+                <div class="form-section-title">Informasi Memo</div>
+
+                <div class="mb-3">
+                  <label class="form-label">Tempat</label>
+                  <input type="text" class="form-control" id="tempat" placeholder="Contoh: Karawang" required />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Tanggal</label>
+                  <input type="date" class="form-control" id="tanggal" required />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Nomor Memo</label>
+                  <div class="input-group">
+                    <span class="input-group-text">No</span>
+                    <select class="form-select" id="nomorDropdown" required style="max-width: 140px"></select>
+                    <input type="text" class="form-control" id="nomorManual" placeholder="AHMOSM/P4/III/2025" required />
+                  </div>
+                  <div class="hint mt-1">Contoh hasil: <em>003/AHMOSM/P4/III/2025</em></div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Kepada</label>
+                  <input type="text" class="form-control" id="kepada" required />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Dari</label>
+                  <input type="text" class="form-control" id="dari" required />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Perihal</label>
+                  <input type="text" class="form-control" id="hal" required />
+                </div>
+              </div>
+
+              <!-- KANAN -->
+              <div class="col-md-6">
+                <div class="form-section-title">Isi Memo</div>
+                <textarea class="form-control" id="isi" rows="8" placeholder="Tulis isi memo di sini..." required></textarea>
+
+                <div class="mb-3 mt-3">
+                  <label class="form-label">Upload Gambar Tambahan (Opsional)</label>
+                  <input type="file" class="form-control" id="gambar" accept="image/*" />
+                </div>
+
+                <div class="form-section-title">Para Pihak</div>
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <label class="form-label">Diajukan – Nama</label>
+                    <input type="text" class="form-control" id="diajukanNama" required />
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="form-label">Jabatan</label>
+                    <input type="text" class="form-control" id="diajukanJabatan" required />
+                  </div>
+
+                  <div class="col-sm-6">
+                    <label class="form-label">Diketahui – Nama</label>
+                    <input type="text" class="form-control" id="diketahuiNama" required />
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="form-label">Jabatan</label>
+                    <input type="text" class="form-control" id="diketahuiJabatan" required />
+                  </div>
+
+                  <div class="col-sm-6">
+                    <label class="form-label">Diterima – Nama</label>
+                    <input type="text" class="form-control" id="diterimaNama" required />
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="form-label">Jabatan</label>
+                    <input type="text" class="form-control" id="diterimaJabatan" required />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex flex-wrap gap-2 mt-4">
+              <button type="submit" class="btn btn-danger"><i class="bi bi-check2-circle me-1"></i> Buat Memo</button>
+              <button type="button" class="btn btn-dark" id="btnLihatHasil"><i class="bi bi-eye me-1"></i> Memo Terakhir Dibuat</button>
+              <button type="button" class="btn btn-secondary" id="btnResetNomor"><i class="bi bi-arrow-counterclockwise me-1"></i> Enable No Memo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Jalankan setelah dropdown terisi
+      window.addEventListener("DOMContentLoaded", () => {
+        if (window.syncDisableDropdownByServer) {
+          window.syncDisableDropdownByServer().catch((err) => {
+            console.warn("Gagal sync nomor dari server:", err.message || err);
+          });
+        }
+      });
+    </script>
+
+    <script>
+      /* ==== Dropdown nomor ==== */
+      window.isiDropdownNomor = function () {
+        const dropdown = document.getElementById("nomorDropdown");
+        if (!dropdown) return;
+
+        // ambil data terbaru dari localStorage
+        let usedNumbers = [];
+        try {
+          usedNumbers = JSON.parse(localStorage.getItem("usedNomorMemo") || "[]");
+        } catch (e) {
+          usedNumbers = [];
+        }
+
+        // clear isi lama
+        dropdown.innerHTML = '<option value="">Pilih</option>';
+
+        // isi ulang nomor
+        for (let i = 1; i <= 100; i++) {
+          const no = String(i).padStart(3, "0") + "/";
+          const option = document.createElement("option");
+          option.value = no;
+
+          if (usedNumbers.includes(no)) {
+            option.textContent = no + " (sudah dipakai)";
+            option.disabled = true;
+          } else {
+            option.textContent = no;
+            option.disabled = false;
+          }
+
+          dropdown.appendChild(option);
+        }
+      };
+
+      // 1) Pastikan dropdown 001–100 selalu terisi saat halaman siap
+      window.addEventListener("DOMContentLoaded", isiDropdownNomor);
+
+      /* ==== Helper ambil data form ==== */
+      function ambilDataForm() {
+        const dropdownValue = document.getElementById("nomorDropdown").value || "";
+        const manualValue = document.getElementById("nomorManual").value || "";
+        return {
+          tempat: document.getElementById("tempat").value,
+          tanggal: document.getElementById("tanggal").value,
+          nomor: dropdownValue + manualValue,
+          kepada: document.getElementById("kepada").value,
+          dari: document.getElementById("dari").value,
+          hal: document.getElementById("hal").value,
+          isi: document.getElementById("isi").value,
+          diajukanNama: document.getElementById("diajukanNama").value,
+          diajukanJabatan: document.getElementById("diajukanJabatan").value,
+          diketahuiNama: document.getElementById("diketahuiNama").value,
+          diketahuiJabatan: document.getElementById("diketahuiJabatan").value,
+          diterimaNama: document.getElementById("diterimaNama").value,
+          diterimaJabatan: document.getElementById("diterimaJabatan").value,
+        };
+      }
+
+      async function simpanLaluKeHasil({ tandaiNomor = true } = {}) {
+        const data = ambilDataForm();
+
+        // Validasi minimum
+        if (!data.tempat || !data.tanggal || !data.nomor || !data.kepada || !data.dari || !data.hal) {
+          alert("Lengkapi data (Tempat, Tanggal, Nomor, Kepada, Dari, Perihal).");
+          return;
+        }
+
+        // Gambar opsional
+        const fileInput = document.getElementById("gambar");
+        if (fileInput.files && fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          data.gambar = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        } else {
+          data.gambar = null;
+        }
+
+        localStorage.setItem("memoData", JSON.stringify(data));
+        if (!localStorage.getItem("memoData")) {
+          alert("Gagal menyimpan data ke penyimpanan lokal.");
+          return;
+        }
+        window.location.href = "hasil.html";
+      }
+
+      // 3) Submit: kunci nomor di server dulu (jika aktif), lalu lanjut alur lama
+      window.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("memoForm");
+        if (!form) return;
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          // lanjut proses lama
+          simpanLaluKeHasil({ tandaiNomor: true });
+        });
+      });
+
+      // Lihat Hasil
+      window.addEventListener("DOMContentLoaded", () => {
+        const btn = document.getElementById("btnLihatHasil");
+        if (btn) btn.addEventListener("click", () => (window.location.href = "hasil.html"));
+      });
+      // ❗ btnResetNomor ditangani di blok modal di bawah
+    </script>
+
+    <!-- Modal Password untuk Enable Nomor -->
+    <div class="modal fade" id="enableModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-secondary text-white">
+            <h5 class="modal-title">Konfirmasi Enable Nomor</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-2">Masukkan password admin untuk mengaktifkan kembali semua nomor memo.</p>
+            <div class="input-group">
+              <input type="password" class="form-control" id="enablePwInput" placeholder="Password admin" />
+              <button class="btn btn-outline-secondary" type="button" id="toggleEnablePw">Lihat</button>
+            </div>
+            <div id="enablePwError" class="form-text text-danger d-none"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-secondary" id="confirmEnableNomor">Enable Semua Nomor</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const enableModalEl = document.getElementById("enableModal");
+      const enableModal = new bootstrap.Modal(enableModalEl);
+      const btnEnable = document.getElementById("btnResetNomor");
+      const btnConfirmEnable = document.getElementById("confirmEnableNomor");
+      const pwInputEnable = document.getElementById("enablePwInput");
+      const pwErrorEnable = document.getElementById("enablePwError");
+      const toggleEnablePw = document.getElementById("toggleEnablePw");
+
+      btnEnable.addEventListener("click", () => {
+        pwInputEnable.value = "";
+        pwErrorEnable.classList.add("d-none");
+        enableModal.show();
+        setTimeout(() => pwInputEnable.focus(), 150);
+      });
+
+      toggleEnablePw.addEventListener("click", () => {
+        const isPw = pwInputEnable.type === "password";
+        pwInputEnable.type = isPw ? "text" : "password";
+        toggleEnablePw.textContent = isPw ? "Sembunyikan" : "Lihat";
+      });
+
+      pwInputEnable.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") btnConfirmEnable.click();
+      });
+
+      btnConfirmEnable.addEventListener("click", async () => {
+        const password = pwInputEnable.value.trim();
+        if (!password) {
+          pwErrorEnable.textContent = "Password wajib diisi.";
+          pwErrorEnable.classList.remove("d-none");
+          return;
+        }
+
+        // ambil tahun dari input tanggal, default: tahun saat ini
+        const tgl = document.getElementById("tanggal");
+        const d = tgl && tgl.value ? new Date(tgl.value) : new Date();
+        const year = String(d.getFullYear());
+
+        try {
+          const res = await window.adminResetOnServer({ year, password });
+          if (res && res.ok) {
+            // kosongkan cache lokal
+            localStorage.setItem("usedNomorMemo", JSON.stringify([]));
+
+            // refresh dropdown
+            if (typeof window.isiDropdownNomor === "function") {
+              isiDropdownNomor();
+              document.getElementById("nomorDropdown").selectedIndex = 0;
+            }
+
+            enableModal.hide();
+            alert(`Sukses! ${res.cleared} nomor diaktifkan kembali untuk tahun ${year}.`);
+          } else {
+            pwErrorEnable.textContent = res?.error || "Gagal reset nomor.";
+            pwErrorEnable.classList.remove("d-none");
+          }
+        } catch (err) {
+          console.error(err);
+          pwErrorEnable.textContent = "Terjadi kesalahan saat hubungi server.";
+          pwErrorEnable.classList.remove("d-none");
+        }
+      });
+    </script>
+
+    <script>
+      const isElectron = !!window.electronAPI || (navigator.userAgent && navigator.userAgent.toLowerCase().includes("electron"));
+
+      if (!isElectron) {
+        const btnResetNomor = document.getElementById("btnResetNomor") || document.getElementById("btnEnableNoMemo");
+        if (btnResetNomor) {
+          btnResetNomor.addEventListener("click", function () {
+            const ok = confirm("Mode web: enable semua nomor? (Ini hanya membersihkan status di browser)");
+            if (!ok) return;
+
+            localStorage.removeItem("usedNomorMemo");
+
+            if (typeof window.isiDropdownNomor === "function") window.isiDropdownNomor();
+            alert("Sukses: semua nomor di-enable (mode web).");
+          });
+        }
+      }
+    </script>
+
+    <script>
+      (() => {
+        const isElectron = !!window.electronAPI || (navigator.userAgent && navigator.userAgent.toLowerCase().includes("electron"));
+        const hapusBtn = document.getElementById("hapusLogBtn");
+        const modalEl = document.getElementById("adminModal");
+        const pwInput = document.querySelector("#pwInput, #pwInputLog, #passwordHapusLog");
+        const pwError = document.querySelector("#pwError, #pwErrorLog");
+        const btnConfirm = document.querySelector("#btnConfirm, #btnConfirmHapusLog");
+
+        if (!hapusBtn || !modalEl || !pwInput || !btnConfirm) return;
+
+        let modal = null;
+        try {
+          modal = new bootstrap.Modal(modalEl);
+        } catch (_) {}
+
+        hapusBtn.addEventListener("click", () => {
+          if (pwError) pwError.classList.add("d-none");
+          pwInput.value = "";
+          if (modal) modal.show();
+        });
+
+        btnConfirm.addEventListener("click", async () => {
+          const password = (pwInput.value || "").trim();
+          if (!password) {
+            if (pwError) {
+              pwError.textContent = "Password wajib diisi.";
+              pwError.classList.remove("d-none");
+            }
+            return;
+          }
+
+          if (!isElectron) {
+            if (password !== "MemoBuild25") {
+              if (pwError) {
+                pwError.textContent = "Password salah.";
+                pwError.classList.remove("d-none");
+              }
+              return;
+            }
+            localStorage.setItem("memoLogs", JSON.stringify([]));
+            if (modal) modal.hide();
+            location.reload();
+            return;
+          }
+
+          const prevHTML = btnConfirm.innerHTML;
+          btnConfirm.disabled = true;
+          btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menghapus...';
+
+          try {
+            const res = await window.electronAPI.deleteLogsSecure({ password, scope: "all" });
+            if (!res || !res.ok) {
+              if (pwError) {
+                pwError.textContent = res && res.code === "AUTH" ? "Password salah." : res?.msg || "Gagal menghapus log.";
+                pwError.classList.remove("d-none");
+              }
+              return;
+            }
+            localStorage.setItem("memoLogs", JSON.stringify([]));
+            if (modal) modal.hide();
+            location.reload();
+          } catch (e) {
+            if (pwError) {
+              pwError.textContent = "Terjadi kesalahan saat menghapus log.";
+              pwError.classList.remove("d-none");
+            }
+          } finally {
+            btnConfirm.disabled = false;
+            btnConfirm.innerHTML = prevHTML;
+          }
+        });
+      })();
+    </script>
+
+    <script>
+      // Sinkron saat tanggal diubah (YM berubah)
+      window.addEventListener("DOMContentLoaded", () => {
+        const tgl = document.getElementById("tanggal");
+        if (tgl) {
+          tgl.addEventListener("change", () => {
+            if (window.syncDisableDropdownByServer) window.syncDisableDropdownByServer();
+          });
+        }
+
+        // Sinkron tiap tab kembali fokus (mis. habis dipakai di browser lain)
+        window.addEventListener("focus", () => {
+          if (window.syncDisableDropdownByServer) window.syncDisableDropdownByServer();
+        });
+
+        // Opsional: sinkron saat dropdown disorot/diklik
+        const dd = document.getElementById("nomorDropdown");
+        if (dd) {
+          ["click", "mouseenter", "focus"].forEach((evt) => {
+            dd.addEventListener(evt, () => {
+              if (window.syncDisableDropdownByServer) window.syncDisableDropdownByServer();
+            });
+          });
+        }
+
+        // Opsional: polling ringan tiap 30 detik
+        setInterval(() => {
+          if (window.syncDisableDropdownByServer) {
+            window.syncDisableDropdownByServer();
+          }
+        }, 15000);
+      });
+    </script>
+  </body>
+</html>

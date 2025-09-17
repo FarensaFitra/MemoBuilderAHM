@@ -1,202 +1,127 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MEMO BUILDER</title>
+    <title>MEMO BUILDER – Log Pembuatan Memo (Terpusat)</title>
 
-    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
-    <script>
-      // Tandai lingkungan agar CSS bisa beda antara Electron vs Web
-      (function () {
-        const isElectron = !!window.electronAPI || (navigator.userAgent || "").toLowerCase().includes("electron");
-        document.documentElement.classList.add(isElectron ? "is-electron" : "is-web");
-      })();
-    </script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
 
     <style>
-      :root {
-        --red: #d93232;
-        --red-600: #c02a2a;
-        --red-100: #fde8e8;
-        --ink: #0f0f10;
-        --paper: #ffffff;
-        --bg: #f6f7f9;
-      }
-
-      /* Latar sedikit bertekstur agar tak monoton */
       body {
-        background: linear-gradient(180deg, #fff 0%, #fafafa 30%, var(--bg) 100%), radial-gradient(24px 24px at 24px 24px, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
-        background-size: 100% 100%, 48px 48px;
-        color: var(--ink);
+        background: #f5f6f7;
+        padding-top: 80px; /* beri ruang untuk navbar fixed */
+        font-family: Calibri, sans-serif;
       }
-
-      /* Navbar */
-      .navbar {
-        background: linear-gradient(180deg, var(--red) 0%, var(--red-600) 100%);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      .page-title {
+        font-weight: 800;
+        font-size: 35px;
+        margin-bottom: 8px;
+        text-align: left;
       }
-      .navbar-brand:hover {
-        color: #ffd1d1 !important;
-        transition: color 0.3s;
+      .filter-card {
+        border: 1px solid #e6e6e6;
+        border-radius: 12px;
+        background: #fff;
+        padding: 14px;
+        margin-bottom: 12px;
       }
-      .navbar-toggler {
+      .table-wrapper {
+        border: 1px solid #e6e6e6;
+        border-radius: 12px;
+        background: #fff;
+        padding: 0;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      }
+      .status-line {
+        font-size: 0.95rem;
+        color: #666;
+        margin-left: 8px;
+      }
+      .empty-msg {
+        text-align: center;
+        color: #777;
+        margin: 12px 0;
+        display: none;
+      }
+      #hapusLogBtn {
+        background: #d9534f;
+        color: #fff;
         border: none;
-        transition: transform 0.2s;
       }
-      .navbar-toggler:hover {
-        transform: scale(1.1);
+      #hapusLogBtn:hover {
+        background: #b3120c;
+      }
+      .navbar {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       }
       .navbar-brand img {
         height: 30px;
         object-fit: contain;
       }
-
-      /* Offcanvas */
       .offcanvas-header {
-        background: var(--red);
-      }
-      .offcanvas-header .offcanvas-title {
-        color: #fff;
-        font-weight: 700;
-        letter-spacing: 0.5px;
+        background: #d93232;
       }
       .offcanvas-header .btn-close {
         filter: invert(1);
-      }
-      .offcanvas-body {
-        font-size: 1rem;
-        padding-top: 1rem;
       }
       .offcanvas-body .nav-link {
         color: #000 !important;
         font-weight: 500;
         padding: 8px 12px;
         border-radius: 8px;
-        transition: background-color 0.25s, color 0.25s;
       }
       .offcanvas-body .nav-link:hover {
         background: rgba(217, 50, 50, 0.1);
-        color: var(--red) !important;
+        color: #d93232 !important;
       }
-      .offcanvas-body .nav-link img {
-        width: 40px;
-        height: 40px;
-        object-fit: contain;
-        flex-shrink: 0;
+      .offcanvas-body .nav-link.active {
+        background: rgba(217, 50, 50, 0.12);
+        color: #d93232 !important;
       }
 
-      /* Judul 1 baris + panah kanan */
-      .page-wrap {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 24px;
-      }
+      /* ------------ Title dot (titik merah) ------------ */
       .title-row {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        margin: 32px auto 8px;
+        gap: 0.8rem;
+        margin: 0 0 12px 0;
+        overflow: visible; /* biar box-shadow tidak terpotong */
       }
-      .page-title {
-        margin: 0;
-        font-weight: 800;
-        font-size: clamp(26px, 3.6vw, 44px);
-        font-family: Calibri, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      }
+
       .title-left {
         display: flex;
         align-items: center;
         gap: 0.8rem;
+        overflow: visible;
+        padding-left: 6px; /* opsional, beri ruang kiri */
       }
+
       .title-dot {
         width: 14px;
         height: 14px;
         border-radius: 50%;
-        background: var(--red);
-        box-shadow: 0 0 0 6px var(--red-100);
-      }
-      .title-action {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        border: 2px solid var(--red);
-        display: grid;
-        place-items: center;
-        color: var(--red);
-        transition: background 0.2s, color 0.2s, transform 0.12s;
-      }
-      .title-action:hover {
-        background: var(--red);
-        color: #fff;
-        transform: translateY(-1px);
-      }
-
-      /* Frame “kertas” untuk preview */
-      .memo-frame {
-        background: var(--paper);
-        border-radius: 18px;
-        box-shadow: 0 30px 50px rgba(0, 0, 0, 0.1), 0 6px 14px rgba(0, 0, 0, 0.06);
-        border: 1px solid rgba(0, 0, 0, 0.06);
-        overflow: hidden;
+        background: #d93232;
+        box-shadow: 0 0 0 6px #fde8e8;
+        flex-shrink: 0;
         position: relative;
-      }
-      .memo-frame::before {
-        content: "";
-        position: absolute;
-        inset: 0 0 auto 0;
-        height: 6px;
-        background: linear-gradient(90deg, var(--red) 0 40%, #000 40% 44%, #fff 44% 100%);
-      }
-      .memo-paper {
-        padding: 32px; /* ruang dalam frame */
-      }
-      .memo-img {
-        width: min(100%, 210mm); /* tetap proporsional A4 */
-        display: block;
-        margin: 0 auto;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-      }
-
-      @media (max-width: 992px) {
-        .memo-paper {
-          padding: 18px;
-        }
-      }
-
-      :root {
-        --preview-scale: 1.25;
-      }
-
-      .is-web .preview-viewport {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        overflow: auto;
-        height: calc(100vh - 120px);
-        padding: 16px;
-      }
-
-      .is-web .preview-viewport .memo-frame {
-        transform: scale(var(--preview-scale));
-        transform-origin: top center;
+        z-index: 2;
       }
     </style>
   </head>
   <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-dark">
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar navbar-dark bg-danger fixed-top">
       <div class="container-fluid">
         <div class="d-flex align-items-center">
           <button class="navbar-toggler me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu">
             <span class="navbar-toggler-icon"></span>
           </button>
-          <a class="navbar-brand fw-bold mb-0 h1 d-flex align-items-center" href="#">
+          <a class="navbar-brand fw-bold mb-0 h1 d-flex align-items-center" href="index.html">
             <img src="img/memo1.png" alt="Logo Memo" style="width: 65px; height: 65px; object-fit: contain" />
             MEMO Builder
           </a>
@@ -204,11 +129,11 @@
       </div>
     </nav>
 
-    <!-- OFFCANVAS MENU -->
+    <!-- ===== OFFCANVAS ===== -->
     <div class="offcanvas offcanvas-start text-bg-light" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
       <div class="offcanvas-header text-white">
         <h5 class="offcanvas-title fw-bold d-flex align-items-center gap-2" id="offcanvasMenuLabel">
-          <img src="img/memo1.png" alt="Logo" style="width: 65px; height: 65px; object-fit: contain" />
+          <img src="img/memo1.png" alt="Logo" style="width: 60px; height: 60px; object-fit: contain" />
           MEMO Builder
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -216,41 +141,250 @@
       <div class="offcanvas-body">
         <ul class="navbar-nav">
           <li class="nav-item mb-3">
-            <a class="nav-link d-flex align-items-center gap-2" href="nav.html"> <img src="img/beranda.png" alt="Beranda" /><span>Beranda</span> </a>
+            <a class="nav-link d-flex align-items-center gap-2" href="hasil.html">
+              <img src="img/beranda.png" alt="Beranda" width="40" height="40" />
+              <span>Beranda</span>
+            </a>
           </li>
           <li class="nav-item mb-3">
-            <a class="nav-link d-flex align-items-center gap-2" href="index.html"> <img src="img/form.png" alt="Form" /><span>Form Pengisian Memo</span> </a>
+            <a class="nav-link d-flex align-items-center gap-2" href="index.html">
+              <img src="img/form.png" alt="Form" width="40" height="40" />
+              <span>Form Pengisian Memo</span>
+            </a>
           </li>
           <li class="nav-item mb-3">
-            <a class="nav-link d-flex align-items-center gap-2" href="hasil.html"> <img src="img/hasil.png" alt="Memo Terakhir" /><span>Memo Terakhir Dibuat</span> </a>
+            <a class="nav-link d-flex align-items-center gap-2" href="log.html">
+              <img src="img/hasil.png" alt="Memo Terakhir" width="40" height="40" />
+              <span>Memo Terakhir Dibuat</span>
+            </a>
           </li>
           <li class="nav-item mb-3">
-            <a class="nav-link d-flex align-items-center gap-2" href="log.html"> <img src="img/log.png" alt="Log" /><span>Log Pembuatan Memo</span> </a>
+            <a class="nav-link d-flex align-items-center gap-2 active" href="nav.html">
+              <img src="img/log.png" alt="Log" width="40" height="40" />
+              <span>Log Pembuatan Memo</span>
+            </a>
           </li>
         </ul>
       </div>
     </div>
 
-    <!-- KONTEN -->
-    <main class="page-wrap">
-      <!-- Judul 1 baris + panah ke kanan -->
-      <div class="title-row">
-        <div class="title-left">
-          <span class="title-dot"></span>
-          <h1 class="page-title">Template Pembuatan Memo</h1>
-        </div>
-      </div>
-
-      <!-- Frame modern untuk preview template -->
-      <div class="preview-viewport">
-        <div class="memo-frame my-3">
-          <div class="memo-paper">
-            <img class="memo-img" src="img/memo.png" alt="Preview Template Memo" />
+    <!-- ===== CONTENT ===== -->
+    <div class="container mt-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="title-row">
+          <div class="title-left">
+            <span class="title-dot" aria-hidden="true"></span>
+            <h1 class="page-title m-0">
+              Log Pembuatan Memo
+              <small id="status" class="status-line">(memuat…)</small>
+            </h1>
           </div>
         </div>
       </div>
-    </main>
 
+      <div class="filter-card">
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-6 col-md-3">
+            <label for="tahun" class="form-label">Tahun</label>
+            <select id="tahun" class="form-select"></select>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <label for="bulan" class="form-label">Bulan</label>
+            <div class="d-flex gap-2">
+              <select id="bulan" class="form-select"></select>
+              <button id="btnFilter" class="btn btn-outline-secondary">CARI</button>
+            </div>
+          </div>
+          <div class="col-md-5 text-end filter-actions">
+            <div class="d-flex gap-2 justify-content-end flex-wrap">
+              <button id="btnClearAll" class="btn btn-danger">HAPUS SEMUA LOG MEMO</button>
+              <a class="btn btn-dark" href="index.html">+ BUAT MEMO BARU</a>
+            </div>
+          </div>
+        </div>
+        <p id="petunjuk" class="mt-2 mb-0" style="color: #444; font-style: italic">🔍 Pilih Tahun dan Bulan, lalu klik tombol CARI untuk melihat log pembuatan memo</p>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 20%">No Memo</th>
+                <th style="width: 40%">Perihal</th>
+                <th style="width: 25%">Dibuat Oleh</th>
+                <th style="width: 15%">Tanggal dibuat</th>
+              </tr>
+            </thead>
+            <tbody id="logBody">
+              <tr>
+                <td colspan="4">Memuat…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="emptyMessage" class="empty-msg">Tidak ada memo untuk filter saat ini.</div>
+    </div>
+
+    <!-- Modal Hapus Log -->
+    <div class="modal fade" id="hapusLogModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">Konfirmasi Hapus Semua Log</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-2">Masukkan password admin untuk menghapus semua log memo dari server:</p>
+            <div class="input-group">
+              <input type="password" class="form-control" id="hapusLogPw" placeholder="Password admin" />
+              <button class="btn btn-outline-secondary" type="button" id="toggleHapusPw">Lihat</button>
+            </div>
+            <div id="hapusLogError" class="form-text text-danger d-none"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-danger" id="confirmHapusLog">Hapus Semua Log</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG API -->
+    <script>
+      window.MEMO_API_ENABLED = true;
+      window.MEMO_API_BASE = "https://script.google.com/macros/s/AKfycbz27OvM9n1vGUcePh7JX6cd62X1JeeD7pa_vcJSqwK7FgsxMvq0j3QJesc2jBlIi1b3/exec";
+      window.MEMO_API_TIMEOUT_MS = 7000;
+    </script>
+
+    <script src="memo-api.js?v=20250907-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      function populateYearMonthDropdowns() {
+        const tahunSelect = document.getElementById("tahun");
+        const bulanSelect = document.getElementById("bulan");
+        const currentYear = new Date().getFullYear();
+        tahunSelect.innerHTML = "";
+
+        for (let y = 2025; y <= 2030; y++) {
+          const opt = document.createElement("option");
+          opt.value = y;
+          opt.textContent = y;
+          if (y === currentYear) opt.selected = true;
+          tahunSelect.appendChild(opt);
+        }
+
+        const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        bulanSelect.innerHTML = "";
+        months.forEach((m, i) => {
+          const opt = document.createElement("option");
+          opt.value = (i + 1).toString().padStart(2, "0");
+          opt.textContent = m;
+          if (i === new Date().getMonth()) opt.selected = true;
+          bulanSelect.appendChild(opt);
+        });
+      }
+
+      async function render() {
+        document.getElementById("status").textContent = "(memuat…)";
+        const tahun = document.getElementById("tahun").value;
+        const bulan = document.getElementById("bulan").value;
+
+        try {
+          const res = await memoApiFetch("?route=logs_memo", { method: "GET" });
+          if (!res || !res.ok) throw new Error("Gagal ambil log");
+
+          let logs = res.logs || [];
+          logs = logs.filter((l) => l.tanggal && l.tanggal.startsWith(`${tahun}-${bulan}`));
+
+          const body = document.getElementById("logBody");
+          body.innerHTML = "";
+          if (logs.length === 0) {
+            document.getElementById("emptyMessage").style.display = "block";
+          } else {
+            document.getElementById("emptyMessage").style.display = "none";
+            logs.forEach((l) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+          <td class="mono">${l.nomor}</td>
+          <td>${l.perihal}</td>
+          <td>${l.dibuatOleh}</td>
+          <td>${formatTanggal(l.tanggal)}</td>`;
+              body.appendChild(tr);
+            });
+          }
+          document.getElementById("status").textContent = `(${logs.length} entri)`;
+        } catch (err) {
+          document.getElementById("status").textContent = "❌ Gagal memuat log";
+        }
+      }
+
+      function formatTanggal(val) {
+        const d = new Date(val);
+        if (isNaN(d)) return val;
+        return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+      }
+
+      populateYearMonthDropdowns();
+      render();
+      document.getElementById("btnFilter").addEventListener("click", render);
+
+      // === Modal Hapus Log ===
+      const hapusModalEl = document.getElementById("hapusLogModal");
+      const hapusModal = new bootstrap.Modal(hapusModalEl);
+      const btnClearAll = document.getElementById("btnClearAll");
+      const pwInput = document.getElementById("hapusLogPw");
+      const pwError = document.getElementById("hapusLogError");
+      const togglePw = document.getElementById("toggleHapusPw");
+      const btnConfirm = document.getElementById("confirmHapusLog");
+
+      // buka modal
+      btnClearAll.addEventListener("click", () => {
+        pwInput.value = "";
+        pwError.classList.add("d-none");
+        hapusModal.show();
+        setTimeout(() => pwInput.focus(), 150);
+      });
+
+      // toggle lihat password
+      togglePw.addEventListener("click", () => {
+        const isPw = pwInput.type === "password";
+        pwInput.type = isPw ? "text" : "password";
+        togglePw.textContent = isPw ? "Sembunyikan" : "Lihat";
+      });
+
+      // eksekusi hapus log
+      btnConfirm.addEventListener("click", async () => {
+        const password = pwInput.value.trim();
+        if (!password) {
+          pwError.textContent = "Password wajib diisi.";
+          pwError.classList.remove("d-none");
+          return;
+        }
+
+        try {
+          const res = await memoApiFetch("", {
+            method: "POST",
+            body: JSON.stringify({ route: "log_clear", password }),
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+          });
+          if (res && res.ok) {
+            alert(`Sukses: ${res.cleared || 0} baris dihapus dari server.`);
+            hapusModal.hide();
+            document.getElementById("status").textContent = `✅ Log server sudah dikosongkan (${res.cleared || 0} baris terhapus).`;
+            render();
+          } else {
+            pwError.textContent = res?.error || "Gagal hapus log.";
+            pwError.classList.remove("d-none");
+          }
+        } catch (err) {
+          pwError.textContent = "Terjadi kesalahan: " + (err.message || err);
+          pwError.classList.remove("d-none");
+        }
+      });
+    </script>
   </body>
 </html>

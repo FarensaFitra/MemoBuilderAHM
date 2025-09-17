@@ -219,16 +219,16 @@
       <div class="offcanvas-body">
         <ul class="navbar-nav">
           <li class="nav-item mb-3">
-            <a class="nav-link d-flex align-items-center gap-2" href="nav.html"><img src="img/beranda.png" alt="Beranda" /><span>Beranda</span></a>
+            <a class="nav-link d-flex align-items-center gap-2" href="hasil.html"><img src="img/beranda.png" alt="Beranda" /><span>Beranda</span></a>
           </li>
           <li class="nav-item mb-3">
             <a class="nav-link d-flex align-items-center gap-2" href="index.html"><img src="img/form.png" alt="Form" /><span>Form Pengisian Memo</span></a>
           </li>
           <li class="nav-item mb-3">
-            <a class="nav-link d-flex align-items-center gap-2" href="hasil.html"><img src="img/hasil.png" alt="Memo Terakhir" /><span>Memo Terakhir Dibuat</span></a>
+            <a class="nav-link d-flex align-items-center gap-2" href="log.html"><img src="img/hasil.png" alt="Memo Terakhir" /><span>Memo Terakhir Dibuat</span></a>
           </li>
           <li class="nav-item mb-3">
-            <a class="nav-link d-flex align-items-center gap-2" href="log.html"><img src="img/log.png" alt="Log" /><span>Log Pembuatan Memo</span></a>
+            <a class="nav-link d-flex align-items-center gap-2" href="nav.html"><img src="img/log.png" alt="Log" /><span>Log Pembuatan Memo</span></a>
           </li>
         </ul>
       </div>
@@ -443,7 +443,7 @@
           alert("Gagal menyimpan data ke penyimpanan lokal.");
           return;
         }
-        window.location.href = "hasil.html";
+        window.location.href = "log.html";
       }
 
       // 3) Submit: kunci nomor di server dulu (jika aktif), lalu lanjut alur lama
@@ -462,7 +462,7 @@
       // Lihat Hasil
       window.addEventListener("DOMContentLoaded", () => {
         const btn = document.getElementById("btnLihatHasil");
-        if (btn) btn.addEventListener("click", () => (window.location.href = "hasil.html"));
+        if (btn) btn.addEventListener("click", () => (window.location.href = "log.html"));
       });
       // ❗ btnResetNomor ditangani di blok modal di bawah
     </script>

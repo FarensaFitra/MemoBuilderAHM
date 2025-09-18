@@ -428,6 +428,46 @@
         position: relative;
         z-index: 2;
       }
+
+      /* ==== Layout responsif tombol + memo (HP) ==== */
+      @media (max-width: 768px) {
+        .container-two-col {
+          flex-direction: column;
+          align-items: center; /* kolom dipusatkan */
+        }
+
+        .side-actions {
+          position: static !important; /* nonaktifkan sticky */
+          width: 100%;
+          max-width: 600px;
+          margin: 0 auto 16px auto;
+          order: -1; /* pindahkan tombol ke atas memo */
+          text-align: center;
+        }
+
+        .side-actions .btn-wide {
+          width: 100%;
+          font-size: 18px;
+          margin-bottom: 10px;
+        }
+
+        .memo-viewport {
+          width: 100%;
+          display: flex;
+          justify-content: center; /* memo tetap center */
+          align-items: flex-start;
+          overflow-x: auto;
+          padding: 0;
+        }
+
+        .memo-container {
+          margin: 0 auto;
+          width: 210mm; /* tetap ukuran A4 */
+          max-width: 100%; /* jika layar kecil, biar mengecil */
+          transform: none !important;
+          padding: 16px !important;
+        }
+      }
     </style>
   </head>
   <body class="page">
@@ -492,7 +532,7 @@
         <div class="title-row" aria-hidden="true">
           <div class="title-left">
             <span class="title-dot"></span>
-            <h1 class="page-title m-0">Tampilan Hasil Memo <i class="bi bi-arrow-right-circle"></i></h1>
+            <h1 class="page-title m-0">Tampilan Hasil Memo</h1>
           </div>
         </div>
 
